@@ -208,14 +208,63 @@
         #:when (symbol? y)
         `(var ,(cdr (assv y acc)))]
       [`(lambda (,x) ,body)
-        #:when (and (symbol? x) (null? acc))
-        (list 'lambda (lex body `((,x . 0))))]
-      [`(lambda (,x) ,body)
         #:when (symbol? x)
          (if (assv x acc)
-         (list 'lambda (lex body (cons `(,x . 0) (remv (assv x acc) (map (lambda (p) ((car p) . (+ 1 (cdr p)))) acc)))))
-         (list 'lambda (lex body (cons `(,x . 0) (map (lambda (p) ((car p) . (+ 1 (cdr p)))) acc)))))]
+         (list 'lambda (lex body (cons `(,x . 0) (remv (assv x acc) (map (lambda (p) `(,(car p) . ,(+ 1 (cdr p)))) acc)))))
+         (list 'lambda (lex body (cons `(,x . 0) (map (lambda (p) `(,(car p) . ,(+ 1 (cdr p)))) acc)))))]
       [`(,rator ,rand)
         (list (lex rator acc) (lex rand acc))])))
-(lex '(lambda (x) x) '())
-(lex '(lambda (y) (lambda (x) y)) '())
+;;; (lex '(lambda (x) x) '())
+;;; (lex '(lambda (y) (lambda (x) y)) '())
+;;; (lex '(lambda (y) (lambda (x) (x y))) '())
+;;; (lex '(lambda (x) (lambda (x) (x x))) '())
+;;; (lex '(lambda (y) ((lambda (x) (x y)) (lambda (c) (lambda (d) (y c))))) '()) 
+;;; (lex '(lambda (a)
+;;;           (lambda (b)
+;;;             (lambda (c)
+;;;               (lambda (a)
+;;;                 (lambda (b)
+;;;                   (lambda (d)
+;;;                     (lambda (a)
+;;;                       (lambda (e)
+;;;                         (((((a b) c) d) e) a))))))))) '())
+;;; (lex '(lambda (a)
+;;;           (lambda (b)
+;;; 	    (lambda (c)
+;;; 	      (lambda (w)
+;;; 	        (lambda (x)
+;;; 		  (lambda (y)
+;;; 		    ((lambda (a)
+;;; 		       (lambda (b)
+;;; 			 (lambda (c)
+;;; 			   (((((a b) c) w) x) y))))
+;;; 		     (lambda (w)
+;;; 		       (lambda (x)
+;;; 			 (lambda (y)
+;;; 			   (((((a b) c) w) x) y))))))))))) '())
+
+;;; Brainteasers
+;;; Case 14. walk-symbol-update
+(define walk-symbol-update
+  (lambda (var ls)
+    (match (assv var ls)
+      [#f var]
+      [`(,x . ,y)
+        #:when (assv (unbox y) ls)
+        (set-box! y (walk-symbol-update (unbox y) ls))
+        (walk-symbol-update (unbox y) ls)]
+      [`(,x . ,y)
+        #:when (not (assv (unbox y) ls))
+        (unbox y)])))
+;;; (define a-list `((c . ,(box 15)) (e . ,(box 'f)) (b . ,(box 'c)) (a . ,(box 'b))))
+;;; a-list
+;;; (walk-symbol-update 'a a-list)
+;;; a-list
+;;; (walk-symbol-update 'a a-list)
+;;; a-list
+
+;;; Just Dessert
+;;; Case 15. var-occurs-both? 
+;;; (define var-occurs-both?
+;;;   (lambda (var exp)
+;;;     ))
