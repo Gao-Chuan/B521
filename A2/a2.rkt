@@ -1,5 +1,7 @@
 #lang racket
 
+(provide (all-defined-out))
+
 ;; Part 1. Natural Recursion Refresher
 ;; Case 1. list-ref
 (define list-ref
@@ -265,6 +267,29 @@
 
 ;;; Just Dessert
 ;;; Case 15. var-occurs-both? 
-;;; (define var-occurs-both?
-;;;   (lambda (var exp)
-;;;     ))
+(define var-occurs-both?
+  (lambda (var exp)
+    (match exp
+      [`,y
+        #:when (symbol? y)
+        (values #t #f)]
+      [`(lambda (,x) ,body)
+        #:when (symbol? x)
+        (if (eqv? x var)
+            (let-values(
+              [(x y) (var-occurs-both? var body)]
+            )
+              (values #f (or x y)))
+            (var-occurs-both? var body))]
+      [`(,rator ,rand)
+        (let-values (
+          [(x1 y1) (var-occurs-both? var rator)]
+          [(x2 y2) (var-occurs-both? var rand)]
+        )
+          (values (or x1 x2) (or y1 y2)))])))
+(var-occurs-both? 'x '(lambda (x) (x (lambda (x) x))))
+(var-occurs-both? 'x '(x (lambda (x) x)))
+(var-occurs-both? 'x '(lambda (y) (x (lambda (x) x)))) 
+(var-occurs-both? 'x '(lambda (x) (lambda (x) (x (lambda (x) x)))))
+(var-occurs-both? 'x '(lambda (x) (lambda (y) (lambda (x) (x (lambda (x) x))))))
+(var-occurs-both? 'x '(lambda (y) (lambda (x) (lambda (z) (lambda (x) (x (lambda (x) x)))))))
