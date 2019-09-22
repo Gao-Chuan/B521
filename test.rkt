@@ -1,19 +1,20 @@
 #lang racket
 
-(let-values (
-    [(x y) (values 1 2)]
-    [(t u) (values 3 4)]
-)   (+ x u)
+(define extend-env-fn
+  (lambda (env x val)
+    (lambda (y)
+      (match y
+        [x val]
+        [_ (env y)]
+      )
+    )
+  )
 )
 
-(define valof
-    (lambda (e env)
-        (match e
-            [`,y 
-                #:when (symbol? y) 
-                (env x)]
-            [`(lambda (,x) ,body) 
-                #:when (symbol? x) 
-                (lambda (arg) (valof body (lambda y (if (eqv? y x) arg (env y)))))]
-            [`(,rator ,rand)
-                ((valof rand env) (valof rand env))])))
+(define e
+  (lambda (y) 
+    (error 'value-of "unbound variable ~s" y)
+  )
+)
+
+(extend-env-fn e `,n #:when (number? n) )
