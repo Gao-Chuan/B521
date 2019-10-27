@@ -137,7 +137,7 @@
   )
 )
 
-(define val-of-cbname 
+(define val-of-cbname
   (lambda (exp env)
     (match exp
       [`,n 
@@ -400,3 +400,46 @@
 ; (val-of-cbv cons-test (empty-env))
 
 ;;; Just Dessert
+
+
+(define val-of-cbname 
+  (lambda (exp env)
+    (match exp
+      [`,n 
+       #:when (number? n)
+       n]
+      [`,b
+       #:when (boolean? b)
+       b]
+      [`(zero? ,x)
+       (zero? (val-of-cbname x env))]
+      [`(sub1 ,x)
+       (sub1 (val-of-cbname x env))]
+      [`(* ,a ,b)
+       (* (val-of-cbname a env) (val-of-cbname b env))]
+      [`(if ,c ,t ,e)
+       (if (val-of-cbname c env) (val-of-cbname t env) (val-of-cbname e env))]
+      [`(begin2 ,s1 ,s2)
+       (begin (val-of-cbname s1 env) (val-of-cbname s2 env))]
+      [`(random ,n) 
+       (random (val-of-cbname n env))]
+      [`,x
+       #:when (symbol? x)
+       ((env x))]
+      [`(lambda (,x) ,body)
+       #:when (symbol? x)
+       (lambda (arg) (val-of-cbname body (lambda (y) (if (eqv? x y) arg (env y)))))
+      ]
+      [`(,rator ,rand)
+       (apply-closure (val-of-cbname rator env) (lambda() (let ([get-cc (call/cc (lambda (c) c))]) 
+                                                               (begin (get-cc (val-of-cbname rand env))  (lambda() get-cc))
+                                                                    )))]
+    )
+  )
+)
+
+(val-of-cbname '((lambda (x) x) 10) (empty-env))
+
+(define get-cc (call/cc (lambda (c) c)))
+(get-cc 10)
+get-cc
