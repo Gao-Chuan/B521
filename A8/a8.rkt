@@ -19,6 +19,9 @@
                                         (begin (set! rv l)
                                             (set! rk k)
                                             (apply-rk))))]
+            [`(fact-ck ,n ,k) (begin (set! rv (* n rv))
+                                     (set! rk k)
+                                     (apply-rk))]
         )
     )
 )
@@ -109,3 +112,37 @@
 ; (depth-reg-driver '(1 (2 (3 (4)))))
 
 ; 3. fact
+(define rfact #f)
+
+(define fact-ck
+    (lambda ()
+        `(fact-ck ,rn ,rk)
+    )
+)
+
+(define fact-reg
+    (lambda ()
+        (begin (set! rfact (lambda ()
+                                (cond
+                                    [(zero? rn) (begin (set! rv 1)
+                                                        (apply-rk))]
+                                    [else (begin (set! rk (fact-ck))
+                                                 (set! rn (sub1 rn))
+                                                 (rfact))])
+                            ))
+                (rfact))
+    )
+)
+
+(define fact-reg-driver
+    (lambda (n)
+        (begin (set! rn n)
+               (set! rk (empty-k))
+               (fact-reg))
+    )
+)
+
+; (fact-reg-driver 5)
+
+; pascal
+(define )
