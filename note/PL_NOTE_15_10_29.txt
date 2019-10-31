@@ -1,0 +1,303 @@
+we first revise how call by name and call by need works.
+
+Then we add random operator to the interpreter
+
+[`(random ,x)
+    (random (valof x env))
+]
+
+(randrom 100) return 0 - 99
+
+for (lambda (x) (+ x x)) we demonstrate what the value of x is
+with the help of (displayln x)
+
+where shall we print it? we print is at the variable line
+
+when given (random 2)
+call-by-need return only even, since x is only evluated once
+and (+ x x) is x * 2.
+call-by-name return 0 or 1 or 2, x are evaluated two times
+
+(iota 20) return a list which is '(1 2 3 ... 19)
+
+(define iota
+    (lambda (x)
+        (cond
+            [(zero? n) '()]
+            [else (cons (random n) (iota (sub1 n)))]
+        )
+    )
+)
+
+(define partition
+    (lambda (ls x)
+        (cond
+            [(null? ls)
+                '(() ())
+            ]
+            [(< (car ls) x)
+                (match (partiton (cdr ls) x)
+                    [`(,smaller ,larger)
+                        `(,(cons (car ls) smaller) ,larger)
+                    ]    
+                )
+            ]
+            [else
+                (match (partiton (cdr ls) x)
+                    [`(,smaller ,larger)
+                        `(,smaller ,(cons (car ls) larger))
+                    ]    
+                )
+            ]
+        )
+    )
+)
+
+
+(define partition-cps
+    (lambda (ls x k)
+        (cond
+            [(null? ls)
+                '(() ())
+            ]
+            [(< (car ls) x)
+
+                (partiton-cps (cdr ls) x
+                    (lambda (r)
+                        (match r
+                            [`(,smaller ,larger)
+                                (k
+                                    `(,(cons (car ls) smaller) ,larger)
+                                )
+                            ]    
+                        )
+                    )
+                )
+                
+            ]
+            [else
+                (partiton-cps (cdr ls) x
+                    (lambda (r)
+                        (match r
+                            [`(,smaller ,larger)
+                               (k 
+                                    `(,smaller ,(cons (car ls) larger))
+                               )
+                            ]    
+                        )
+                    )
+                )
+                
+            ]
+        )
+    )
+)
+
+another example
+
+write a programm return the average of a list of numbers
+
+(define average
+    (lambda (ls)
+        (/ (sum ls) (length ls))
+    )
+)
+
+(define sum
+    (lambda (ls)
+        (cond
+            [(null? ls) 0]
+            [else (
+                +
+                (car ls)
+                (sum (cdr ls))
+            )]
+        )
+    )
+)
+
+(define length
+    (lambda (ls)
+        (cond
+            [(null? ls) 0]
+            [else
+                (+ 1 (length (cdr ls)))
+            ]
+        )
+    )
+)
+
+(define sumxlen
+    (lambda (ls)
+        (cond
+            [(null? ls) '(0 . 0)]
+            [else
+                (match (sumxlen (cdr ls))
+                    [`(,s . ,l)
+                        (, (+ (car ls) s) . ,(add1 l))   
+                    ]
+                )
+            ]
+        )
+    )
+)
+
+(define average-sps
+    (lambda (ls)
+        (match (sumxlen ls)
+            [`(,s . ,l)
+                (/ s l)
+            ]
+        )
+    )
+)
+
+(define fib
+    (lambda (n)
+        (cond
+            [(<= n 1) 1]
+            [else
+                (+ 
+                    (fib (sub1 n))
+                    (fib (sub2 n))
+                )
+            ]
+        )
+    )
+)
+
+;;(fib 100) could be really slow, let's store passing stylized it
+
+memoization/dp
+let's memorized the value of all (fib x) to avoid repetitve 
+(define fib-sps
+    (lambda (n store)
+        (cond
+            [(assv n store)
+                `(
+                    ,(cdr
+                        (assv n store) ;;(get the value of (fib n))
+                    )
+                    .
+                    ,store
+                )
+            ]
+            [(<= n 1) `(1 . ,store)]
+            [else
+                (match (fib-sps (sub1 n) store)
+                    [`(,r1 . ,store1)
+                        (match (fib-sps (sub2 n) store1)
+                            [`(,r2 . ,store2)
+                                `(
+                                    ,(+ r1 r2)
+                                    .
+                                    (
+                                        (,n . ,(+ r1 r2))
+                                        .
+                                        ,store2
+                                    )
+                                )
+                            ]
+                        )
+                    ]
+                )
+            ]
+        )
+    )
+)
+
+(define fib-sps
+    (lambda (n store)
+        (cond
+            [(assv n store)
+                `(
+                    ,(cdr
+                        (assv n store) ;;(get the value of (fib n))
+                    )
+                    .
+                    ,store
+                )
+            ]
+            [(<= n 1) `(1 . ,store)]
+            ;;replace the else line with match-let*
+            [else
+                (match-let*
+                    (
+                        [`(,r1 . ,store1) (fib-sps (sub1 n) store)]
+                        [`(,r2 . ,store2) (fib-sps (sub2 n) store)]
+                        [r (+ r1 r2)]
+                    )
+                    `(,r . ((n . r) . store2))
+                )
+            ]
+            #;
+            [else
+                (match (fib-sps (sub1 n) store)
+                    [`(,r1 . ,store1)
+                        (match (fib-sps (sub2 n) store1)
+                            [`(,r2 . ,store2)
+                                `(
+                                    ,(+ r1 r2)
+                                    .
+                                    (
+                                        (,n . ,(+ r1 r2))
+                                        .
+                                        ,store2
+                                    )
+                                )
+                            ]
+                        )
+                    ]
+                )
+            ]
+        )
+    )
+)
+
+let's sps the value-of interpreter
+
+we store the exp every time we evaluate
+
+(define valof
+    (lambda (exp env store)
+        (match exp
+            [`,n
+                #:when (number? y)
+                `(,n . ,(cons exp store))
+            ]
+            [`,y
+                #:when (symbol? y)
+                `(,(env y) . ,(cons exp store))
+            ]
+            [`(lambda (,x) body)
+                `(
+                    ,(lambda (a store)
+                        (valof body
+                            (lambda (y)
+                                (if (eqv? y x)
+                                    a
+                                    (env y)
+                                )
+                            )
+                            store
+                        )
+                    )
+                    .
+                    ,(cons exp store)
+            ]
+            [`(,rator ,rand)
+                (match-let*
+                    (
+                        [`(,clos . ,store1) (valof rator env (cons exp store))] ;; we update the store to help the output in order
+                        [`(,a . ,store2) (valof rand env store1)]
+                    )
+                    (clos a store2) 
+                    ;; we could unpdate the store here instead of update in the valof rator
+                    ;; but this will result in an out of order output
+                )
+            ]
+        
+        )
+    )
+
+)
