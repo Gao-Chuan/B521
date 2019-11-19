@@ -2,13 +2,7 @@
 
 (require "parenthec.rkt")
 
-;; ***** STEP 8 *****
-;; convert serious procedure invocations to PC
-;; mount and dismount trampoline
-
-;; registers
 (define-registers e* env* k* y* c* a* v*)
-;; program-counter
 (define-program-counter pc*)
 
 (define-union expr
@@ -24,8 +18,7 @@
   (lambda body)
   (app rator rand))
 
-;; the RI interpreter (registerized)
-(define-label value-of-cps    ;; e* env* k*
+(define-label value-of-cps 
   (union-case e* expr
               [(const cexp)
                (begin
@@ -80,12 +73,11 @@
                  (set! k* (kt_app-outer-k rand env* k*))
                  (set! pc* value-of-cps))]))
 
-;; union representation of env (RI)
 (define-union envr
   (empty-env)
   (extend-env a^ env^))
 
-(define-label apply-env    ;; env* y* k*
+(define-label apply-env
   (union-case env* envr
               [(empty-env)
                (error "unbound variable")]
@@ -99,11 +91,10 @@
                      (set! y* (sub1 y*))
                      (set! pc* apply-env)))]))
 
-;; union representation of closures (RI)
 (define-union clos
   (closure b env))
 
-(define-label apply-closure    ;; c* a* k*
+(define-label apply-closure
   (union-case c* clos
               [(closure b env)
                (begin
@@ -111,7 +102,6 @@
                  (set! env* (envr_extend-env a* env))
                  (set! pc* value-of-cps))]))
 
-;; union representation of continuations
 (define-union kt
   (empty-k jumpout)
   (app-outer-k rand env k)
@@ -185,10 +175,8 @@
                  (set! v* (* x1 v*))
                  (set! pc* apply-k))]))
 
-;; registerized
-(define-label main          ;; (fact 5) should evaluates to 120
+(define-label main
   (begin
-    ;; (set! k* (kt_empty-k))
     (set! env* (envr_empty-env))
     (set! e* (expr_let
               (expr_lambda
@@ -207,5 +195,4 @@
     (mount-trampoline kt_empty-k k* pc*)
     (printf "Fact 5: ~s\n" v*)))
 
-;; invoke main
 (main)
