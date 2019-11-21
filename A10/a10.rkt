@@ -2,6 +2,31 @@
 (require "mk.rkt")
 (require "numbers.rkt")
 
+;;; Brainteaser
+
+;;; REFERENCES
+;;; Little Languages for Relational Programming
+;;; (run 1 (q) (pluso (build - num 2) (build- num 9) q))
+
+;;; (define length
+;;;     (lambda (ls)
+;;;         (cond
+;;;             [(eqv? ls '()) '()]
+;;;             [else (plus-o 1 (length (cdr ls))])
+;;;     )
+;;; )
+
+(define (lengtho ls ret)
+    (conde
+        [(== '() ls) (== '() ret)]
+        [(fresh (add a d)
+            (== `(,a . ,d) ls)
+            (pluso (build-num 1) add ret)
+            (lengtho d add))]
+    )
+)
+;;; (run 10 q (fresh (x y) (lengtho x y) (== `(,x ,y) q)))
+
 ;; Part I Write the answers to the following problems using your
 ;; knowledge of miniKanren.  For each problem, explain how miniKanren
 ;; arrived at the answer.  You will be graded on the quality of your
@@ -57,6 +82,7 @@
 )
 ;;; (run* q (assoco 'x '((x . 6) (x . 5)) q))
 ;;; (run* q (assoco 'x '((x . 6) . ,q) '(x . 6)))
+(run* q (assoco 'x '((x . 5)) '(x . 5)))
 
 ;;; reverseo
 (define (reverseo ls ret)
@@ -65,29 +91,25 @@
         [(fresh (a d)
             (== `(,a . ,d) ls)
             (fresh (res)
-                (reverseo d res)
-                (appendo res `(,a) ret)))]
+                (appendo res `(,a) ret)
+                (reverseo d res)))]
     )
 )
 ;;;  (run* x (reverseo `(a b c d) `(d . ,x)))
+;;; (run 10 q (fresh (x y) (reverseo x y) (== `(,x ,y) q)))
 
 ;;; stuttero
-(define stutter
-  (lambda (ls)
-    (cond
-      ((equal? '() ls) '())
-      (else 
-        (match-let* ((`(,a . ,d) ls)
-		     (res (stutter d)))
-          `(,a ,a . ,res))))))
 (define (stuttero ls ret)
     (conde
         [(== '() ls) (== '() ret)]
         [(fresh (a d res)
             (== `(,a . ,d) ls)
-            (stuttero d res)
             (== `(,a ,a . ,res) ret)
+            (stuttero d res)
         )]
     )
 )
-(run 1 q (stuttero q '(1 1 2 2 3 3)))
+;;; (run 1 q (stuttero q '(1 1 2 2 3 3)))
+;;; (run 1 (q) (stuttero q '(1 1 2 2 3 3)))
+;;; (run* q (stuttero q '(1 1 2 2 3 3)))
+;;; (run 1 q (fresh (a b c d) (== q `(,a ,b ,c ,d)) (stuttero a `(1 ,b ,c 2 3 ,d))))
