@@ -1,5 +1,5 @@
 #lang racket
-(require "mk.rkt")
+(require "./a10/mk.rkt")
 
 (defrel (⊢ Γ e τ)
   #|
@@ -7,7 +7,7 @@
     from gamma, we can derive e has type tau
   |#
   (condᵉ
-    [(numberᵒ e) (== τ 'Nat)]
+    [(numbero e) (== τ 'Nat)]
     [(fresh (nexp)
       (== `(zero? ,nexp) e)
       (⊢ Γ nexp 'Nat)
@@ -79,36 +79,36 @@
 #|STLC
 Pro|#
 
-#|
-  Γ ⊢ a : A Γ ⊢ d : D 
-  ---------------------
-  Γ ⊢ (cons a d) : (Pair A D)
-|#
-[(fresh (a d A D)
-  (== `(cons ,a ,d) ,e)
-  (== `(pair ,A ,D) τ )
-  (⊢ Γ a A)
-  (⊢ Γ d D))]
+;;; #|
+;;;   Γ ⊢ a : A Γ ⊢ d : D 
+;;;   ---------------------
+;;;   Γ ⊢ (cons a d) : (Pair A D)
+;;; |#
+;;; [(fresh (a d A D)
+;;;   (== `(cons ,a ,d) ,e)
+;;;   (== `(pair ,A ,D) τ )
+;;;   (⊢ Γ a A)
+;;;   (⊢ Γ d D))]
 
-#|
-  Γ ⊢ pr : (Pair A D)
-  ----------------------
-  Γ ⊢ (car pr) :A
-|#
-[(fresh (pr D)
-  (== `(car pr) e)
-  (⊢ Γ pr `(Pair ,τ ,D)))]
-#|
-  Γ ⊢ pr : (Pair A D)
-  ----------------------
-  Γ ⊢ (car pr) :D
-|#
-[(fresh (pr A)
-  (== `(cdr ,pr)e)
-  (⊢ Γ pr `(Pair ,A ,τ )))]
+;;; #|
+;;;   Γ ⊢ pr : (Pair A D)
+;;;   ----------------------
+;;;   Γ ⊢ (car pr) :A
+;;; |#
+;;; [(fresh (pr D)
+;;;   (== `(car pr) e)
+;;;   (⊢ Γ pr `(Pair ,τ ,D)))]
+;;; #|
+;;;   Γ ⊢ pr : (Pair A D)
+;;;   ----------------------
+;;;   Γ ⊢ (car pr) :D
+;;; |#
+;;; [(fresh (pr A)
+;;;   (== `(cdr ,pr)e)
+;;;   (⊢ Γ pr `(Pair ,A ,τ )))]
 
-#|
-  ----------------------
-  Γ ⊢ (match  e  [p₁ r₁ ] [p₂ r₂]) : R
-|#
+;;; #|
+;;;   ----------------------
+;;;   Γ ⊢ (match  e  [p₁ r₁ ] [p₂ r₂]) : R
+;;; |#
 
