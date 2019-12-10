@@ -52,7 +52,7 @@
 (define apply-closure
   (λ (c a k)
     (union-case c clos
-                [(closure b env)
+        [(closure b env)
        (value-of-cps b (envr_extend-env a env) k)])))
 
 (define-union kt
