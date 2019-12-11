@@ -50,6 +50,7 @@
         (set! e* body)
         (set! env* (envr_extend-env k* env*))
         (set! pc* value-of-cps))]
+    ;;; test program has been changed in function main.
     [(callcc exp)
       (begin
         (set! e* (expr_app exp (expr_lambda (expr_var 0))))
