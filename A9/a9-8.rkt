@@ -114,7 +114,7 @@
   (mult-outer-k x2 env k)
   (mult-inner-k x1 k))
 
-(define-label apply-k    ;; k* v*
+(define-label apply-k
   (union-case k* kt
               [(empty-k jumpout) (dismount-trampoline jumpout)]
               [(app-outer-k rand env k)

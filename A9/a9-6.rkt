@@ -22,58 +22,57 @@
     (union-case e* expr
         [(const cexp)
             (begin
-            (set! v* cexp)
-            (apply-k))]
+              (set! v* cexp)
+              (apply-k))]
         [(mult nexp1 nexp2)
             (begin
-            (set! e* nexp1)
-            (set! k* (kt_mult-outer-k nexp2 env* k*))
-            (value-of-cps))]
+              (set! e* nexp1)
+              (set! k* (kt_mult-outer-k nexp2 env* k*))
+              (value-of-cps))]
         [(sub1 nexp)
             (begin
-            (set! e* nexp)
-            (set! k* (kt_sub1-k k*))
-            (value-of-cps))]
+              (set! e* nexp)
+              (set! k* (kt_sub1-k k*))
+              (value-of-cps))]
         [(zero nexp)
             (begin
-            (set! e* nexp)
-            (set! k* (kt_zero-k k*))
-            (value-of-cps))]
+              (set! e* nexp)
+              (set! k* (kt_zero-k k*))
+              (value-of-cps))]
         [(if test conseq alt)
             (begin
-            (set! e* test)
-            (set! k* (kt_if-k conseq alt env* k*))
-            (value-of-cps))]
+              (set! e* test)
+              (set! k* (kt_if-k conseq alt env* k*))
+              (value-of-cps))]
         [(letcc body)
             (begin
-            (set! e* body)
-            (set! env* (envr_extend-env k* env*))
-            (value-of-cps))]
+              (set! e* body)
+              (set! env* (envr_extend-env k* env*))
+              (value-of-cps))]
         [(throw kexp vexp)
             (begin
-            (set! e* kexp)
-            (set! k* (kt_throw-k vexp env*))
-            (value-of-cps))]
+              (set! e* kexp)
+              (set! k* (kt_throw-k vexp env*))
+              (value-of-cps))]
         [(let exp body)
             (begin
-            (set! e* exp)
-            (set! k* (kt_let-k body env* k*))
-            (value-of-cps))]
+              (set! e* exp)
+              (set! k* (kt_let-k body env* k*))
+              (value-of-cps))]
         [(var n)
             (begin
-            (set! y* n)
-            (apply-env))]
+              (set! y* n)
+              (apply-env))]
         [(lambda body)
             (begin
-            (set! v* (clos_closure body env*))
-            (apply-k))]
+              (set! v* (clos_closure body env*))
+              (apply-k))]
         [(app rator rand)
             (begin
-            (set! e* rator)
-            (set! k* (kt_app-outer-k rand env* k*))
-            (value-of-cps))])))
+              (set! e* rator)
+              (set! k* (kt_app-outer-k rand env* k*))
+              (value-of-cps))])))
 
-;; union representation of env (RI)
 (define-union envr
   (empty-env)
   (extend-env a^ env^))
@@ -82,7 +81,7 @@
   (λ () (envr_empty-env)))
 
 (define apply-env
-  (λ ()    ;; env* y* k*
+  (λ ()
     (union-case env* envr
                 [(empty-env)
                  (error "unbound variable")]
@@ -96,12 +95,11 @@
                        (set! y* (sub1 y*))
                        (apply-env)))])))
 
-;; union representation of closures (RI)
 (define-union clos
   (closure b env))
 
 (define apply-closure
-  (λ ()    ;; c* a* k*
+  (λ ()
     (union-case c* clos
                 [(closure b env)
                  (begin
@@ -109,7 +107,6 @@
                    (set! env* (envr_extend-env a* env))
                    (value-of-cps))])))
 
-;; union representation of continuations
 (define-union kt
   (empty-k)
   (app-outer-k rand env k)
@@ -127,7 +124,7 @@
     (kt_empty-k)))
 
 (define apply-k
-  (λ ()    ;; k* v*
+  (λ ()
     (union-case k* kt
                 [(empty-k) v*]
                 [(app-outer-k rand env k)
@@ -188,7 +185,6 @@
                    (set! v* (* x1 v*))
                    (apply-k))])))
 
-;; registerized
 (define main
   (λ ()
     (begin

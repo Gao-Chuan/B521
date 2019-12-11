@@ -20,45 +20,45 @@
     (union-case e expr
         [(const cexp)
             (let* ([v cexp])
-            (apply-k k v))]
+              (apply-k k v))]
         [(mult nexp1 nexp2)
             (let* ([e nexp1]
-                [k (kt_mult-outer-k nexp2 env k)])
-            (value-of-cps e env k))]
+                  [k (kt_mult-outer-k nexp2 env k)])
+              (value-of-cps e env k))]
         [(sub1 nexp)
             (let* ([e nexp]
-                [k (kt_sub1-k k)])
-            (value-of-cps e env k))]
+                    [k (kt_sub1-k k)])
+              (value-of-cps e env k))]
         [(zero nexp)
             (let* ([e nexp]
-                [k (kt_zero-k k)])
-            (value-of-cps e env k))]
+                    [k (kt_zero-k k)])
+              (value-of-cps e env k))]
         [(if test conseq alt)
             (let* ([e test]
-                [k (kt_if-k conseq alt env k)])
-            (value-of-cps e env k))]
+                   [k (kt_if-k conseq alt env k)])
+              (value-of-cps e env k))]
         [(letcc body)
             (let* ([e body]
-                [env (envr_extend-env k env)])
-            (value-of-cps e env k))]
+                  [env (envr_extend-env k env)])
+              (value-of-cps e env k))]
         [(throw kexp vexp)
             (let* ([e kexp]
-                [k (kt_throw-k vexp env)])
-            (value-of-cps e env k))]
+                  [k (kt_throw-k vexp env)])
+              (value-of-cps e env k))]
         [(let exp body)
             (let* ([e exp]
-                [k (kt_let-k body env k)])
-            (value-of-cps e env k))]
+                  [k (kt_let-k body env k)])
+              (value-of-cps e env k))]
         [(var n)
             (let* ([y n])
-            (apply-env env y k))]
+              (apply-env env y k))]
         [(lambda body)
             (let* ([v (clos_closure body env)])
-            (apply-k k v))]
+              (apply-k k v))]
         [(app rator rand)
             (let* ([e rator]
-                [k (kt_app-outer-k rand env k)])
-            (value-of-cps e env k))])))
+                  [k (kt_app-outer-k rand env k)])
+              (value-of-cps e env k))])))
 
 (define-union envr
   (empty-env)
