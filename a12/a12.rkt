@@ -226,3 +226,5 @@
     '(* 3 (capture q (* 2 (return q 4)))))
 ((run-cont (value-of-cps fact-5 (empty-env))) (lambda (v) v))
 ((run-cont (value-of-cps capture-fun (empty-env))) (lambda (v) v))
+
+;;; talked with haoran
