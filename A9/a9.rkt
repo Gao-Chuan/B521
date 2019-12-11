@@ -93,16 +93,16 @@
 (define-label apply-env
   (union-case env* envr
         [(empty-env)
-        (error 'empty-env "unbound variable")]
+          (error 'empty-env "unbound variable")]
         [(extend-env a^ env^)
-        (if (zero? y*)
-          (begin
-            (set! v* a^)
-            (set! pc* apply-k))
-          (begin
-            (set! env* env^)
-            (set! y* (sub1 y*))
-            (set! pc* apply-env)))]))
+          (if (zero? y*)
+            (begin
+              (set! v* a^)
+              (set! pc* apply-k))
+            (begin
+              (set! env* env^)
+              (set! y* (sub1 y*))
+              (set! pc* apply-env)))]))
 
 (define-union clos
   (closure b env))
