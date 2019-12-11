@@ -211,12 +211,14 @@
 (define-label main
   (begin
     (set! env* (envr_empty-env))
-    (set! e* (expr_callcc
-                (expr_lambda
-                  (expr_if
-                    (expr_zero (expr_const 1))
-                    (expr_app (expr_var 0) (expr_const 0))
-                    (expr_app (expr_var 0) (expr_const 999))))))
+    (set! e* (expr_app
+              (expr_lambda
+                (expr_callcc
+                  (expr_lambda
+                    (expr_if
+                      (expr_zero (expr_var 1))
+                      (expr_app (expr_var 0) (expr_const 0))
+                      (expr_app (expr_var 0) (expr_const 1)))))) (expr_const 1)))
     (set! pc* value-of-cps)
     (mount-trampoline kt_empty-k k* pc*)
     (printf "Fact 5: ~s\n" v*)))
