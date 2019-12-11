@@ -1,6 +1,6 @@
-;;;#lang racket
+#lang racket
 
-;;(require "parenthec.rkt")
+(require "parenthec.rkt")
 
 (define-registers e* env* k* y* c* a* v*)
 (define-program-counter pc*)
@@ -16,7 +16,8 @@
   (throw kexp vexp)
   (let exp body)
   (lambda body)
-  (app rator rand))
+  (app rator rand)
+  (callcc exp))
 
 (define-label value-of-cps
   (union-case e* expr
@@ -49,6 +50,18 @@
         (set! e* body)
         (set! env* (envr_extend-env k* env*))
         (set! pc* value-of-cps))]
+    [(callcc exp)
+      (begin
+        (set! e* (expr_app exp (expr_lambda (expr_var 0))))
+        (set! pc* value-of-cps))]
+    ;;; [(callcc exp)
+    ;;;   (union-case exp expr
+    ;;;     [(lambda body)
+    ;;;       (begin
+    ;;;         (set! e* body)
+    ;;;         (set! env* (envr_extend-env k* env*))
+    ;;;         (set! pc* value-of-cps))]
+    ;;;   )]
     [(throw kexp vexp)
       (begin
         (set! e* kexp)
@@ -175,24 +188,38 @@
         (set! v* (* x1 v*))
         (set! pc* apply-k))]))
 
+;;; (define-label main
+;;;   (begin
+;;;     (set! env* (envr_empty-env))
+;;;     (set! e* (expr_let
+;;;               (expr_lambda
+;;;                (expr_lambda
+;;;                 (expr_if
+;;;                  (expr_zero (expr_var 0))
+;;;                  (expr_const 1)
+;;;                  (expr_mult (expr_var 0) (expr_app (expr_app (expr_var 1) (expr_var 1)) (expr_sub1 (expr_var 0)))))))
+;;;               (expr_mult
+;;;                (expr_letcc
+;;;                 (expr_app
+;;;                  (expr_app (expr_var 1) (expr_var 1))
+;;;                  (expr_throw (expr_var 0) (expr_app (expr_app (expr_var 1) (expr_var 1)) (expr_const 4)))))
+;;;                (expr_const 5))))
+;;;     (set! pc* value-of-cps)
+;;;     (mount-trampoline kt_empty-k k* pc*)
+;;;     (printf "Fact 5: ~s\n" v*)))
+
 (define-label main
   (begin
     (set! env* (envr_empty-env))
-    (set! e* (expr_let
-              (expr_lambda
-               (expr_lambda
-                (expr_if
-                 (expr_zero (expr_var 0))
-                 (expr_const 1)
-                 (expr_mult (expr_var 0) (expr_app (expr_app (expr_var 1) (expr_var 1)) (expr_sub1 (expr_var 0)))))))
-              (expr_mult
-               (expr_letcc
-                (expr_app
-                 (expr_app (expr_var 1) (expr_var 1))
-                 (expr_throw (expr_var 0) (expr_app (expr_app (expr_var 1) (expr_var 1)) (expr_const 4)))))
-               (expr_const 5))))
+    (set! e* (expr_callcc
+                (expr_lambda
+                  (expr_if
+                    (expr_zero (expr_const 1))
+                    (expr_app (expr_var 0) (expr_const 0))
+                    (expr_app (expr_var 0) (expr_const 999))))))
     (set! pc* value-of-cps)
     (mount-trampoline kt_empty-k k* pc*)
     (printf "Fact 5: ~s\n" v*)))
 
+(main)
 ;;; I have talked with tianyu during A9.
