@@ -53,6 +53,7 @@
     [(callcc exp)
       (begin
         (set! e* (expr_app exp (expr_lambda (expr_var 0))))
+        (set! env* (envr_extend-env k* env*))
         (set! pc* value-of-cps))]
     ;;; [(callcc exp)
     ;;;   (union-case exp expr
